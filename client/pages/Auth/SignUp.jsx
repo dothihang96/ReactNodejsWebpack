@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Button, Card, Col, Form, Icon, Input, Result, Row } from 'antd';
+import { Button, Card, Col, Form, Input,Icon, Result, Row } from 'antd';
 import { Mutation } from 'react-apollo';
 import { withRouter } from 'react-router-dom';
 import _ from 'lodash';
@@ -15,7 +15,7 @@ const RegisterForm = ({ history, location, form }) => {
   const initialValidation = { status: '', help: '' };
   const [validation, setValidation] = useState(initialValidation);
   const [{ auth }, dispatch] = useStore();
-  const { getFieldDecorator, validateFields } = form;
+  const { validateFields } = form;
   const user = _.get(auth, 'user._id');
   useEffect(() => {
     setValidation(initialValidation);
@@ -73,58 +73,58 @@ const RegisterForm = ({ history, location, form }) => {
               <Col {...grid}>
                 <Card title="Sign up">
                   <Form onSubmit={e => handleSubmit(e, signup)}>
-                    <FormItem>
-                      {getFieldDecorator('name', {
-                        rules: [
-                          {
-                            required: true,
-                            message: 'Please input your user name!',
-                            min: 6
-                          }
-                        ]
-                      })(
-                        <Input
-                          prefix={
-                            <Icon
-                              type="user"
-                              style={{ color: 'rgba(0,0,0,.25)' }}
-                            />
-                          }
-                          placeholder="Username"
-                        />
-                      )}
+                    <FormItem
+                      name = 'name' 
+                      rules ={[
+                        {
+                          required: true,
+                          message: 'Please input your user name!',
+                          min: 6
+                        }
+                      ]} 
+                    >
+                      <Input
+                        prefix={
+                          <Icon
+                            type="user"
+                            style={{ color: 'rgba(0,0,0,.25)' }}
+                          />
+                        }
+                        placeholder="Username"
+                      />
                     </FormItem>
-                    <FormItem>
-                      {getFieldDecorator('email', {
-                        rules: [
+                    <FormItem
+                      name = 'email' 
+                      rules = {
+                        [
                           {
                             required: true,
                             message: 'Please input your Email!',
                             type: 'email'
                           }
                         ]
-                      })(
-                        <Input
-                          prefix={
-                            <Icon
-                              type="mail"
-                              style={{ color: 'rgba(0,0,0,.25)' }}
-                            />
-                          }
-                          placeholder="Email"
+                      }
+                    >
+                    <Input
+                      prefix={
+                        <Icon
+                          type="mail"
+                          style={{ color: 'rgba(0,0,0,.25)' }}
                         />
-                      )}
+                      }
+                      placeholder="Email"
+                    />
                     </FormItem>
-                    <FormItem>
-                      {getFieldDecorator('password', {
-                        rules: [
+                    <FormItem
+                        name = "password"
+                        rules= {[
                           {
                             required: true,
                             message: 'Please input your password!',
                             min: 6
                           }
-                        ]
-                      })(
+                        ]}
+                    >
                         <Input
                           prefix={
                             <Icon
@@ -135,7 +135,7 @@ const RegisterForm = ({ history, location, form }) => {
                           type="password"
                           placeholder="Password"
                         />
-                      )}
+
                     </FormItem>
                     <FormItem
                       validateStatus={validation.status}
@@ -169,5 +169,4 @@ RegisterForm.propTypes = {
   refetch: PropTypes.func.isRequired
 };
 
-const WrappedRegisterForm = Form.create()(RegisterForm);
-export default withRouter(WrappedRegisterForm);
+export default withRouter(RegisterForm);

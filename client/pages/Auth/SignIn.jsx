@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Button, Card, Col, Form, Icon, Input, Row } from 'antd';
-import { Mutation } from 'react-apollo';
+import { useMutation } from 'react-apollo';
 import { withRouter } from 'react-router-dom';
 import PropTypes from 'prop-types';
 
@@ -11,15 +11,13 @@ const FormItem = Form.Item;
 const LoginForm = ({ history, location, form, refetch }) => {
   const initialValidation = { status: '', help: '' };
   const [validation, setValidation] = useState(initialValidation);
-  const { getFieldDecorator, validateFields } = form;
   useEffect(() => {
     setValidation(initialValidation);
   }, [location.pathname]);
-  const handleSubmit = (e, signin) => {
-    e.preventDefault();
+const [signin ] = useMutation(SIGN_IN);
+
+const onFinish = (input) => {
     const val = { status: 'validating', help: 'Please wait...' };
-    validateFields(async (err, input) => {
-      if (!err) {
         setValidation(val);
         signin({ variables: { input } })
           .then(async ({ data }) => {
@@ -28,13 +26,17 @@ const LoginForm = ({ history, location, form, refetch }) => {
             history.push('/');
           })
           .catch(error => {
+            let errMsg;
+            if(error.graphQLErrors[0]){
+              errMsg = error.graphQLErrors[0].message;
+            }else{
+              errMsg = error.networkError.result.errors[0].message;
+            }
             setValidation({
               visible: true,
-              help: error.graphQLErrors[0].message
+              help: errMsg
             });
           });
-      }
-    });
   };
   const grid = {
     xs: { span: 24 },
@@ -43,8 +45,6 @@ const LoginForm = ({ history, location, form, refetch }) => {
     lg: { span: 12 }
   };
   return (
-    <Mutation mutation={SIGN_IN}>
-      {(signin, { loading, error }) => (
         <Row
           type="flex"
           justify="center"
@@ -53,39 +53,38 @@ const LoginForm = ({ history, location, form, refetch }) => {
         >
           <Col {...grid}>
             <Card title="Sign In">
-              <Form onSubmit={e => handleSubmit(e, signin, error)}>
-                <FormItem>
-                  {getFieldDecorator('email', {
-                    rules: [
-                      {
-                        required: true,
-                        message: 'Please input your Email!',
-                        type: 'email'
-                      }
-                    ]
-                  })(
-                    <Input
-                      prefix={
-                        <Icon
-                          type="user"
-                          style={{ color: 'rgba(0,0,0,.25)' }}
-                        />
-                      }
-                      placeholder="Email"
-                    />
-                  )}
+              <Form onFinish={onFinish}>
+                <FormItem
+                  name = 'email' 
+                  rules= {[
+                    {
+                      required: true,
+                      message: 'Please input your Email!',
+                      type: 'email'
+                    }
+                  ]} 
+                >
+              <Input
+                prefix={
+                  <Icon
+                    type="user"
+                    style={{ color: 'rgba(0,0,0,.25)' }}
+                  />
+                }
+                placeholder="Email"
+              />
                 </FormItem>
-                <FormItem>
-                  {getFieldDecorator('password', {
-                    rules: [
-                      {
-                        required: true,
-                        message: 'Please input your password!',
-                        min: 6
-                      }
-                    ]
-                  })(
-                    <Input
+                <FormItem
+                  name = 'password' 
+                  rules= {[
+                    {
+                      required: true,
+                      message: 'Please input your password!',
+                      min: 6
+                    }
+                  ]} 
+                >
+                  <Input
                       prefix={
                         <Icon
                           type="lock"
@@ -95,14 +94,12 @@ const LoginForm = ({ history, location, form, refetch }) => {
                       type="password"
                       placeholder="Password"
                     />
-                  )}
                 </FormItem>
                 <FormItem
                   validateStatus={validation.status}
                   help={validation.help}
                 >
                   <Button
-                    loading={loading}
                     type="primary"
                     htmlType="submit"
                     style={{ width: '100%' }}
@@ -118,8 +115,6 @@ const LoginForm = ({ history, location, form, refetch }) => {
             </Card>
           </Col>
         </Row>
-      )}
-    </Mutation>
   );
 };
 LoginForm.propTypes = {
@@ -129,5 +124,4 @@ LoginForm.propTypes = {
   refetch: PropTypes.func.isRequired
 };
 
-const WrappedLoginForm = Form.create()(LoginForm);
-export default withRouter(WrappedLoginForm);
+export default withRouter(LoginForm);

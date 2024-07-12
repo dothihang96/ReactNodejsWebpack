@@ -6,7 +6,6 @@ import ReactDOM from 'react-dom';
 import { StoreProvider } from './store';
 import Routes from './routes';
 import createApolloClient from './apollo-client';
-
 const apolloClient = createApolloClient();
 
 ReactDOM.render(
@@ -19,3 +18,4 @@ ReactDOM.render(
   </ApolloProvider>
   , document.getElementById('root')
 );
+
