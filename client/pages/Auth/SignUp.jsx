@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Button, Card, Col, Form, Input,Icon, Result, Row } from 'antd';
-import { Mutation } from 'react-apollo';
+import { useMutation } from 'react-apollo';
 import { withRouter } from 'react-router-dom';
 import _ from 'lodash';
 import PropTypes from 'prop-types';
@@ -11,24 +11,25 @@ import { useStore } from '../../store';
 
 const FormItem = Form.Item;
 
-const RegisterForm = ({ history, location, form }) => {
+const RegisterForm = ({ history, location }) => {
   const initialValidation = { status: '', help: '' };
   const [validation, setValidation] = useState(initialValidation);
   const [{ auth }, dispatch] = useStore();
-  const { validateFields } = form;
   const user = _.get(auth, 'user._id');
   useEffect(() => {
     setValidation(initialValidation);
   }, [location.pathname, user]);
-  const handleSubmit = (e, signup, apiErr) => {
-    e.preventDefault();
+
+const [signup, { data , loading, error } ] = useMutation(SIGN_UP);
+
+const onFinish = (input) => {
     const val = { status: 'validating', help: 'Please wait...' };
-    validateFields(async (err, input) => {
-      if (!err && !apiErr) {
-        setValidation(val);
-        signup({ variables: { input } }).then(() => history.push('/signup'));
-      }
-    });
+    setValidation(val);
+    signup({ variables: { input } })
+      .then(() => history.push('/signup'));
+    if(data){
+      dispatch({ type: SIGN_UP_ACTION, payload: data.signup })
+    }
   };
 
   const SingUpResult = () => (
@@ -56,13 +57,6 @@ const RegisterForm = ({ history, location, form }) => {
   return (
     <div>
       {!user ? (
-        <Mutation
-          mutation={SIGN_UP}
-          onCompleted={data =>
-            dispatch({ type: SIGN_UP_ACTION, payload: data.signup })
-          }
-        >
-          {(signup, { loading, error }) => (
             <Row
               type="flex"
               justify="center"
@@ -72,7 +66,7 @@ const RegisterForm = ({ history, location, form }) => {
               {error && console.error('Apollo: ', error)}
               <Col {...grid}>
                 <Card title="Sign up">
-                  <Form onSubmit={e => handleSubmit(e, signup)}>
+                  <Form onFinish={onFinish}>
                     <FormItem
                       name = 'name' 
                       rules ={[
@@ -154,8 +148,6 @@ const RegisterForm = ({ history, location, form }) => {
                 </Card>
               </Col>
             </Row>
-          )}
-        </Mutation>
       ) : (
         <SingUpResult />
       )}
