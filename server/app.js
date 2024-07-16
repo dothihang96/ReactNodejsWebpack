@@ -41,7 +41,7 @@ mongoose
 
 
 // 使用 node-cron 設置每30分鐘調用一次API
-cron.schedule('*/1 * * * *', async () => {
+cron.schedule('*/30 * * * *', async () => {
   try {
     const today = new Date();
     const formattedDate = today.toISOString().slice(0, 10);
