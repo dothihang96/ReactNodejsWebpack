@@ -1,5 +1,8 @@
 import User from './User';
-
+import NewsSource from './NewsSource';
+import NewsContent from './NewsContent';
 export default {
-  User
+  User,
+  NewsSource,
+  NewsContent
 };
