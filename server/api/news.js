@@ -1,11 +1,17 @@
 import express from 'express';
 import models from '../models';
+import { getNewsValidation, getNewsStatsValidation } from '../graphql/validation/news';
+
 const app = express.Router();
 
 
 // 分頁、模糊搜尋、日期排序 API
 app.get('/get', async (req, res) => {
     const { page = 1, limit = 10, search = '', sort = 1 } = req.body;
+    const { error } = getNewsValidation({ search, sort });
+    if (error) {
+      throw error;
+    }
     try {
       const news = await models.NewsContent.aggregate([
         { $match: { title: new RegExp(search, 'i') } }, 
@@ -35,13 +41,16 @@ app.get('/get', async (req, res) => {
 //個新聞來源每日統計新聞量
 app.get('/stats', async (req, res) => {
     try {
-      const startDate = new Date(req.body.startDate); 
-      const endDate = new Date(req.body.endDate); 
-  
+      const startDate = req.body.startDate; 
+      const endDate = req.body.endDate; 
+      const { error } = getNewsStatsValidation({ startDate, endDate });
+      if (error) {
+        throw error;
+      }
       const stats = await models.NewsContent.aggregate([
         {
           $match: {
-            publishedAt: { $gte: startDate, $lte: endDate },
+            publishedAt: { $gte: new Date(startDate), $lte: new Date(endDate) },
           },
         },
         {

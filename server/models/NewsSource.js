@@ -1,10 +1,10 @@
 import { Schema, model } from 'mongoose';
 
-const newsSourceSchema = new Schema({
+const newsSource = new Schema({
   id: { type: String, default: null },
   name: { type: String, required: true, unique: true }
 });
-
-const NewsSource = model('NewsSource', newsSourceSchema);
+newsSource.index({ name: 1 }, { unique: true });
+const NewsSource = model('NewsSource', newsSource);
 
 export default NewsSource;

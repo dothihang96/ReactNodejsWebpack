@@ -12,8 +12,10 @@ import resolvers from './graphql/resolvers';
 import schema from './graphql/schema';
 import createApolloServer from './graphql/apollo-server';
 import api from './api/index';
+import _ from 'lodash';
+import { newsSourceValidation, newsContentValidation } from './graphql/validation/news';
+
 import swaggerDoc from './swaggerDoc';
-import { title } from 'process';
 const cron = require('node-cron');
 const axios = require('axios');
 
@@ -49,41 +51,140 @@ cron.schedule('*/30 * * * *', async () => {
     axios.get(newsEndPoint)
     .then(async function(response) {
       const data = response.data.articles;
-      for (const article of data) {
-        // 存新聞來源資料
-        const newsSrcs = await models.NewsSource.aggregate(
-          [ { $match : { name : article.source.name } } ]
-        );
-        let newsSrc;
-        if(newsSrcs.length < 1){
-          newsSrc = new models.NewsSource({ id: article.source.id, name: article.source.name });
-          newsSrc.save(); 
-        }else{
-          newsSrc = newsSrcs[0];
-        }
-        // 存新聞資料
-        const newContents = await models.NewsContent.aggregate(
-          [ { $match : { title : article.title } } ]
-        );
-        if(newContents.length < 1){
-          const newContent = new models.NewsContent({
-            author: article.author,
-            title: article.title,
-            description: article.description,
-            url: article.url,
-            urlToImage: article.urlToImage,
-            publishedAt: new Date(article.publishedAt),
-            content: article.content,
-            sourceId: newsSrc._id
-          });
-          newContent.save(); 
-        }
-      }
+      console.time('insert article');
+      // 取出新聞來源，排除重複，新增、更新來源
+      const newsSources = data.map(article => article.source);
+      const uniqueSources = _.uniqBy(newsSources,'name');
+      await handleNewsSourceData(uniqueSources);
+      //存/更新新聞內容資料
+      await handleNewsContentData(data);
+      console.timeEnd('insert article');
     })
     } catch (error) {
         console.error('Error fetching data:', error);
     }
 });
+/**
+*@param {Object[]} data 欲新增的資料項
+*/
+async function handleNewsSourceData(data){
+    //檢查 source 格式
+    data.forEach(src => {
+      const { error } = newsSourceValidation(src);
+      if (error) {
+        throw error;
+      }
+    });
+    const existingSources = await models.NewsSource.find({ name: { $in: data.map(source => source.name) } });
+    const nonExistingSources = data.filter(source => !existingSources.some(existingSource => existingSource.name === source.name));
+    const updateSrcData = _.map(existingSources,({_id,id,name})=>{
+      const $set = { id: id, name: name};
+      return {
+        query: {_id},
+        update: {$set}
+      }
+    });
+    await bulkUpdate(models.NewsSource, updateSrcData);
+    const newNewsSources = nonExistingSources.map(src=>({
+        id: src.id,
+        name: src.name
+    }));
+    await bulkInsert(models.NewsSource,newNewsSources);
+} 
+
+/**
+*@param {Object[]} data 欲新增的資料項
+*/
+async function handleNewsContentData(data){
+    const existingContents = await models.NewsContent.find({ 
+      $and: [
+        { title: { $in: data.map(content => content.title) } },
+        { description: { $in: data.map(content => content.description) } }
+      ]
+    });
+    const nonExistingContent = data.filter(content => !existingContents.some(existingContent => existingContent.title === content.title
+      && existingContent.description === content.description
+    ));
+    //檢查 content 格式
+    nonExistingContent.forEach(src => {
+      const { error } = newsContentValidation(src);
+      if (error) {
+        throw error;
+      }
+    });
+    const updateContentData = _.map(existingContents,($set)=>{
+      const {_id} = $set;
+      return {
+        query: {_id},
+        update: {$set}
+      }
+    });
+    await bulkUpdate(models.NewsContent, updateContentData);
+    const newsContents = await Promise.all(nonExistingContent.map(async article => {
+      return {
+        author: article.author,
+        title: article.title,
+        description: article.description,
+        url: article.url,
+        urlToImage: article.urlToImage,
+        publishedAt: new Date(article.publishedAt),
+        content: article.content,
+        sourceId: (await models.NewsSource.findOne({ name: article.source.name }))._id
+      };
+    }));
+    await bulkInsert(models.NewsContent,newsContents);
+}
+
+/**
+* 批次新增資料
+*
+* @param {Object} model 欲新增資料的collection名稱
+* @param {Object[]} data 欲新增的資料項
+* @return result 執行結果
+*/
+async function bulkInsert(model, data) {
+  let result;
+  if (!_.isEmpty(data)) {
+    const bulk = await model.collection.initializeUnorderedBulkOp();
+    _.map(data, item => bulk.insert(item));
+    try {
+      result = await bulk.execute();
+    } catch (error) {
+      console.error('[ERROR]bulkInsert: ', error);
+      result = error;
+    }
+  } else {
+    result = new Error('No data.');
+  }
+  return result;
+}
+
+
+/**
+* 批次新增資料
+*
+* @param {string} model 欲新增資料的collection名稱
+* @param {Object[]} data 欲查詢的資料
+* @param {Object} data.query 欲更新的查詢的範圍
+* @param {Object} data.update 欲更新的資料
+* @return result 執行結果
+*/
+async function bulkUpdate(model, data) {
+  let result;
+  if (!_.isEmpty(data)) {
+    const bulk = await model.collection.initializeUnorderedBulkOp();
+    _.map(data, ({ query, update }) => bulk.find(query).update(update));
+    try {
+      result = await bulk.execute();
+    } catch (error) {
+      console.error('[ERROR]bulkUpdate: ', error);
+      result = error;
+    }
+  } else {
+    result = new Error('No data.');
+  }
+  return result;
+}
 
 swaggerDoc(app);
 
