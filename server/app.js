@@ -120,6 +120,7 @@ async function handleNewsContentData(data){
       }
     });
     await bulkUpdate(models.NewsContent, updateContentData);
+    var correspondingSources = await models.NewsSource.find({name: {$in: _.map(nonExistingContent,'name')}});
     const newsContents = await Promise.all(nonExistingContent.map(async article => {
       return {
         author: article.author,
@@ -129,7 +130,7 @@ async function handleNewsContentData(data){
         urlToImage: article.urlToImage,
         publishedAt: new Date(article.publishedAt),
         content: article.content,
-        sourceId: (await models.NewsSource.findOne({ name: article.source.name }))._id
+        sourceId: correspondingSources.filter(src => src.name == article.source.name)[0]._id
       };
     }));
     await bulkInsert(models.NewsContent,newsContents);
