@@ -122,7 +122,7 @@ module.exports = (env, argv) => {
       proxy: [
         {
           context: ['/graphql', '/api'],
-          target: 'http://localhost:8080',
+          target: 'http://localhost:8081',
         },
       ],
     },

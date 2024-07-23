@@ -24,6 +24,18 @@ const schema = gql`
     token: String!
   }
 
+  type NewsContent{
+    _id: ID!
+    author: String
+    title: String!
+    description: String
+    url: String
+    urlToImage: String
+    publishedAt: String!
+    content: String!
+    sourceId: ID!
+  }
+  
   # ---------------------------------------------------------
   # Input Objects
   # ---------------------------------------------------------
@@ -38,6 +50,12 @@ const schema = gql`
     password: String!
   }
 
+  input GetNewsInput {
+    search: String
+    limit: Int
+    page: Int
+  }
+
   # ---------------------------------------------------------
   # Return Payloads
   # ---------------------------------------------------------
@@ -47,6 +65,23 @@ const schema = gql`
     name: String
     createdAt: String
     updatedAt: String
+  }
+  
+  type NewsData{
+    total: Int,
+    news: [NewsInfo]
+  }
+
+  type NewsInfo{
+    _id: ID!
+    author: String
+    title: String!
+    description: String
+    url: String
+    urlToImage: String
+    publishedAt: String!
+    content: String!
+    sourceId: ID!
   }
 
   # ---------------------------------------------------------
@@ -58,6 +93,9 @@ const schema = gql`
 
     # Gets user by username
     getUser(name: String!): UserPayload
+
+    # Gets news by search condition
+    getNews(input: GetNewsInput): NewsData
   }
 
   # ---------------------------------------------------------

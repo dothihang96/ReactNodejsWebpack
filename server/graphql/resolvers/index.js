@@ -1,3 +1,3 @@
 import userResolver from './user';
-
-export default [userResolver];
+import newsResolver from './news';
+export default [userResolver,newsResolver];

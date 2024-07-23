@@ -1,9 +1,8 @@
 import Joi from '@hapi/joi';
 
-const search = Joi.string()
-  .min(50);
-const sort = Joi.number()
-  .allow(1,-1);
+const search = Joi.string().allow(null,'');
+// const sort = Joi.number()
+//   .allow(1,-1);
 const startDate = Joi.date().required();
 const endDate = Joi.date().required();
 
@@ -11,7 +10,7 @@ const endDate = Joi.date().required();
 function getNewsValidation(data) {
   const schema = Joi.object({
     search,
-    sort
+    // sort
   });
   return schema.validate(data);
 }

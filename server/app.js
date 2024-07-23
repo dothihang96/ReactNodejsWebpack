@@ -18,6 +18,7 @@ import { newsSourceValidation, newsContentValidation } from './graphql/validatio
 import swaggerDoc from './swaggerDoc';
 const cron = require('node-cron');
 const axios = require('axios');
+const cors = require("cors");  
 
 const app = express();
 const PORT = process.env.NODE_ENV !== 'development' ? 3000 : 8081;
@@ -200,6 +201,8 @@ app.use(
     extended: true,
   })
 );
+
+app.use(cors());
 
 app.use(express.static('dist'));
 app.use(logger('dev'));

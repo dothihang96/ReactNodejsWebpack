@@ -28,6 +28,7 @@ import { wrapResult } from './utils';
  */
 async function gql(schema, operation, q, authUser) {
   const { query, variables } = q;
+  console.log('schema:',schema);
   const gqlResult = await graphql(
     schema,
     query,
@@ -35,6 +36,8 @@ async function gql(schema, operation, q, authUser) {
     { ...models, authUser },
     variables
   );
+  console.log('call gql start3');
+
   const { errors, data } = gqlResult;
   let result;
   if (_.isEmpty(errors)) {

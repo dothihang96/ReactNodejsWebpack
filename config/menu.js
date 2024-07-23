@@ -30,7 +30,9 @@ class MenuItem {
 
 const config = new MenuItem('config', 'Configuration', 'setting');
 const PERMISSION = new MenuItem('permission', 'Permission', 'right').getInfo();
+const NEWS = new MenuItem('news', 'News', 'right').getInfo();
 config.addSubItem(PERMISSION);
+config.addSubItem(NEWS);
 const CONFIG = config.getInfo();
 const MAP = [CONFIG];
-export { CONFIG, PERMISSION, MAP };
+export { CONFIG, PERMISSION,NEWS, MAP };
