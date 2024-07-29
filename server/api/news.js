@@ -14,13 +14,14 @@ const [newsResolver] = resolvers;
 const schema = makeExecutableSchema({ typeDefs, resolvers: newsResolver });
 
 // 分頁、模糊搜尋、日期排序 API
-app.get('/get', async (req, res) => {
+app.post('/news', async (req, res) => {
+  console.log('req: ',req.body);
   const operation = 'getNews';
   const query = gqlBuilder.query({
     operation,
     variables: {
       input: {
-        value: { ...req.query },
+        value: { ...req.body },
         type: 'GetNewsInput',
         required: true
       }
@@ -31,38 +32,6 @@ app.get('/get', async (req, res) => {
   restResult(res, result);
 });
 
-// // 分頁、模糊搜尋、日期排序 API
-// app.get('/get', async (req, res) => {
-//     const { page = 1, limit = 10, search = '', sort = 1 } = req.query;
-//     const { error } = getNewsValidation({ search, sort });
-//     if (error) {
-//       throw error;
-//     }
-//     try {
-//       const news = await models.NewsContent.aggregate([
-//         { $match: { title: new RegExp(search, 'i') } }, 
-//         { $sort: { publishedAt: sort } }, 
-//         { $skip: (page - 1) * limit }, 
-//         { $limit: parseInt(limit) }
-//       ]);
-  
-//       const totalResult = await models.NewsContent.aggregate([
-//         { $match: { title: new RegExp(search, 'i') } }, 
-//         { $group: { _id: null, total: { $sum: 1 } } }
-//       ]);
-      
-//       const total = totalResult.length > 0 ? totalResult[0].total : 0;
-  
-//       res.json({
-//         total,
-//         page: parseInt(page),
-//         limit: parseInt(limit),
-//         news
-//       });
-//     } catch (err) {
-//       res.status(400).json({ error: err.message });
-//     }
-//   });
 
 
 //個新聞來源每日統計新聞量

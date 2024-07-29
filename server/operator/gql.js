@@ -28,7 +28,6 @@ import { wrapResult } from './utils';
  */
 async function gql(schema, operation, q, authUser) {
   const { query, variables } = q;
-  console.log('schema:',schema);
   const gqlResult = await graphql(
     schema,
     query,

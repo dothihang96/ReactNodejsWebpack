@@ -1,8 +1,15 @@
 import gql from 'graphql-tag';
 
-const newsData = `
-  total
-  news
+const newsPayload = `
+    _id
+    author
+    title
+    description
+    url
+    urlToImage
+    publishedAt
+    content
+    sourceId
 `;
 
 /**
@@ -11,7 +18,10 @@ const newsData = `
 export const GET_NEWS = gql`
   query($input: GetNewsInput) {
     getNews(input: $input) {
-      ${newsData}
+      total
+      news {
+        ${newsPayload}
+      }
     }
   }
 `;

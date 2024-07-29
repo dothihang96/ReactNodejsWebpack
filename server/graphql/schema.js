@@ -51,7 +51,10 @@ const schema = gql`
   }
 
   input GetNewsInput {
-    search: String
+    title: String
+    author: String
+    content: String
+    description: String
     limit: Int
     page: Int
   }

@@ -1,35 +1,48 @@
 
 import {getNewsValidation , getNewsStatsValidation } from '../validation/news';
+import _ from 'lodash';
 
 
 const Query = {
   /**
    * Get news
    *
-   * @param {string} search
    * @param {number} limit
    * @param {number} page
    */
-  getNews: async (root, { input: { search, page = 1,limit = 10 } }, { NewsContent }) => {
-    console.log('call resolver start');
+  getNews: async (root, { input }, { NewsContent }) => {
+    // const { error } = getNewsValidation({ search });
+    // if (error) {
+    //   throw error;
+    // }
+    const {
+      author, content, title, desciption,
+      page, limit
+    } = input;
 
-    const { error } = getNewsValidation({ search });
-    if (error) {
-      throw error;
-    }
-    const news = await NewsContent.aggregate([
-      { $match: { title: new RegExp(search, 'i') } }, 
-      // { $sort: { publishedAt: sort } }, 
-      { $skip: (page - 1) * limit }, 
-      { $limit: parseInt(limit) }
+    const query = {};
+      if (!_.isNil(author)) { // author有輸入時，模糊查詢
+        Object.assign(query, { author: { $regex: author } });
+      }
+      if (!_.isNil(content)) { // content有輸入時，模糊查詢
+        Object.assign(query, { content: { $regex: content } });
+      }
+      if (!_.isNil(title)) { // title有輸入時，模糊查詢
+        Object.assign(query, { title: { $regex: title } });
+      }
+      if (!_.isNil(desciption)) { // desciption有輸入時，模糊查詢
+        Object.assign(query, { desciption: { $regex: desciption } });
+      }
+      
+    const [news, total] = await Promise.all([
+      NewsContent
+        .find(query)
+        .skip((page - 1)*limit)
+        .limit(_.toInteger(limit))
+        .lean()
+        .exec(),
+      NewsContent.countDocuments(query)
     ]);
-
-    const totalResult = await NewsContent.aggregate([
-      { $match: { title: new RegExp(search, 'i') } }, 
-      { $group: { _id: null, total: { $sum: 1 } } }
-    ]);
-    
-    const total = totalResult.length > 0 ? totalResult[0].total : 0;
     return {total, news}
   }
 };
