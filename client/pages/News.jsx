@@ -151,7 +151,9 @@ const News = () => {
       title: 'Published At',
       dataIndex: 'publishedAt',
       key: 'publishedAt',
-      render: (value) => timeStampFormat(value)
+      render: (value) => timeStampFormat(value),
+      sorter: (a, b) => a.publishedAt - b.publishedAt,
+      sortDirections: ['descend', 'ascend'],
     },
     {
       title: 'Content',
