@@ -6,7 +6,8 @@
     "build": "webpack --mode production --progress --color --devtool false",
     "dev:build": "webpack --mode development --color",
     "run": "nodemon \"../dist/server.bundle.js\" --watch \"../dist\"",
-    "dev": "run-p dev:build run"
+    "dev": "run-p dev:build run",
+    "test": "jest"
   },
   "author": "phchu",
   "license": "ISC",
@@ -39,7 +40,9 @@
     "swagger-ui-express": "^4.1.2"
   },
   "devDependencies": {
+    "babel-jest": "^29.7.0",
     "dotenv-webpack": "^8.0.1",
+    "jest": "^29.7.0",
     "nodemon": "^2.0.22",
     "webpack-node-externals": "^1.7.2"
   }

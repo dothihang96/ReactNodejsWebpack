@@ -1,6 +1,6 @@
 
 import {getNewsValidation , getNewsStatsValidation } from '../validation/news';
-import _ from 'lodash';
+import _, { first } from 'lodash';
 
 
 const Query = {
@@ -11,27 +11,27 @@ const Query = {
    * @param {number} page
    */
   getNews: async (root, { input }, { NewsContent }) => {
-    // const { error } = getNewsValidation({ search });
-    // if (error) {
-    //   throw error;
-    // }
+    const { error } = getNewsValidation(input);
+    if (error) {
+      throw error;
+    }
     const {
-      author, content, title, desciption,
-      page, limit
+      author, content, title, description,
+      page = 1, limit = 10
     } = input;
 
     const query = {};
       if (!_.isNil(author)) { // author有輸入時，模糊查詢
-        Object.assign(query, { author: { $regex: author } });
+        Object.assign(query, { author: { $regex: author , $options: 'i'} });
       }
       if (!_.isNil(content)) { // content有輸入時，模糊查詢
-        Object.assign(query, { content: { $regex: content } });
+        Object.assign(query, { content: { $regex: content ,$options: 'i'} });
       }
       if (!_.isNil(title)) { // title有輸入時，模糊查詢
-        Object.assign(query, { title: { $regex: title } });
+        Object.assign(query, { title: { $regex: title ,$options: 'i'} });
       }
-      if (!_.isNil(desciption)) { // desciption有輸入時，模糊查詢
-        Object.assign(query, { desciption: { $regex: desciption } });
+      if (!_.isNil(description)) { // description有輸入時，模糊查詢
+        Object.assign(query, { description: { $regex: description ,$options: 'i'} });
       }
       
     const [news, total] = await Promise.all([
