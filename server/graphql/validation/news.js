@@ -1,11 +1,11 @@
 import Joi from '@hapi/joi';
 
-const author = Joi.string().allow(null,'');
-const title = Joi.string().allow(null,'');
-const content = Joi.string().allow(null,'');
-const description = Joi.string().allow(null,'');
-const page = Joi.number().allow(null);
-const limit = Joi.number().allow(null);
+const author = Joi.string().allow(null,'').max(20);
+const title = Joi.string().allow(null,'').max(20);
+const content = Joi.string().allow(null,'').max(30);
+const description = Joi.string().allow(null,'').max(30);
+const page = Joi.number().allow(null).min(1);
+const limit = Joi.number().allow(null).min(1).max(50);
 const startDate = Joi.date().required();
 const endDate = Joi.date().required();
 

@@ -26,6 +26,14 @@ describe('getNews', () => {
         code: 123, // 錯誤的參數內容
         errorMessage: '"author" must be a string'
       }],
+      ['author 字過多', {
+        code: 21,
+        errorMessage: '"author" 長度 <= 20'
+      }],
+      ['title 字過多', {
+        code: 21,
+        errorMessage: '"title" 長度 <= 20'
+      }],
       ['title 型態錯誤', {
         code: 123, // 錯誤的參數內容
         errorMessage: '"title" must be a string'
@@ -34,13 +42,33 @@ describe('getNews', () => {
         code: 123, // 錯誤的參數內容
         errorMessage: '"description" must be a string'
       }],
+      ['description 字過多', {
+        code: 31,
+        errorMessage: '"description" 長度 <= 30'
+      }],
       ['content 型態錯誤', {
         code: 123, // 錯誤的參數內容
         errorMessage: '"content" must be a string'
       }],
+      ['content 字過多', {
+        code: 31,
+        errorMessage: '"content" 長度 <= 30'
+      }],
       ['page 型態錯誤', {
         code: 'string',
         errorMessage: '"page" must be a number'
+      }],
+      ['page value錯誤', {
+        code: -1,
+        errorMessage: '"page" must be > 0'
+      }],
+      ['limit min value錯誤', {
+        code: -1,
+        errorMessage: '"limit" must be > 0'
+      }],
+      ['limit max value錯誤', {
+        code: 51,
+        errorMessage: '"limit" must be <= 50'
       }],
       ['limit 型態錯誤', {
         code: 'string',
@@ -118,7 +146,18 @@ describe('getNews', () => {
         {input },
         {NewsContent}
       );
-      console.log('result: ', result);
+      const news = result.news;
+      expect(news.length).toEqual(10);
+    });
+
+    it('title search with null,should return first 10', async () => {
+      const input = {title: null}
+      const {NewsContent} = Model;
+      const result = await newsResolver.Query.getNews(
+        null,
+        {input },
+        {NewsContent}
+      );
       const news = result.news;
       expect(news.length).toEqual(10);
     });
